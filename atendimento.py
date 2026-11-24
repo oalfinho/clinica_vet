@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 from cadastro import Animal, Tutor
+from diagnostico import EstruturaAnimal, nova_arvore
 from fila import Fila
 from lista import Lista
 
@@ -13,6 +14,7 @@ class Chegada:
     queixa: str
     emergencia: bool
     hora: datetime = field(default_factory=datetime.now)
+    diagnostico: EstruturaAnimal = field(default_factory=nova_arvore)
 
 
 @dataclass
