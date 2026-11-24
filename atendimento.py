@@ -1,0 +1,61 @@
+from dataclasses import dataclass, field
+from datetime import datetime
+
+from cadastro import Animal, Tutor
+from fila import Fila
+from lista import Lista
+
+
+@dataclass
+class Chegada:
+    tutor: Tutor
+    animal: Animal
+    queixa: str
+    emergencia: bool
+    hora: datetime = field(default_factory=datetime.now)
+
+
+@dataclass
+class Consultorio:
+    numero: int
+    atual: Chegada = None
+
+
+class Atendimento:
+    def __init__(self, cadastro, quantidade_consultorios):
+        if quantidade_consultorios < 1:
+            raise ValueError("É preciso ter pelo menos um consultório.")
+        self.cadastro = cadastro
+        self.normal = Fila()
+        self.emergencia = Fila()
+        self.consultorios = Lista()
+        for numero in range(1, quantidade_consultorios + 1):
+            self.consultorios.adicionar(Consultorio(numero))
+
+    def chegar(self, cpf, nome, queixa, emergencia=False):
+        tutor = self.cadastro.buscar_tutor(cpf)
+        animal = self.cadastro.buscar_animal(cpf, nome)
+        for fila in (self.normal, self.emergencia):
+            if any(chegada.animal is animal for chegada in fila):
+                raise ValueError("Animal já está na espera.")
+        if any(s.atual and s.atual.animal is animal for s in self.consultorios):
+            raise ValueError("Animal já está em atendimento.")
+        chegada = Chegada(tutor, animal, queixa, emergencia)
+        fila = self.emergencia if emergencia else self.normal
+        fila.entrar(chegada)
+        for sala in self.consultorios:
+            if sala.atual is None:
+                self._chamar(sala)
+                break
+        return chegada
+
+    def _chamar(self, sala):
+        fila = self.normal if self.emergencia.vazia() else self.emergencia
+        sala.atual = None if fila.vazia() else fila.sair()
+        return sala.atual
+
+    def liberar(self, numero):
+        sala = self.consultorios.buscar(lambda s: s.numero == numero)
+        if sala.atual is None:
+            raise ValueError("Consultório já está livre.")
+        return self._chamar(sala)
