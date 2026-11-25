@@ -33,7 +33,12 @@ def demonstrar():
     agenda.chegar(cpf, "Mel", "Acidente", emergencia=True)
     ficha = lua.ficha_aberta()
     print(f"Ficha {ficha.numero}: {lua.animal.nome}, tutora {lua.tutor.nome}, {ficha.veterinario}")
-    print("Em espera: Sol (normal), Mel (emergência)")
+    espera = ", ".join(
+        chegada.animal.nome + (" (emergência)" if chegada.emergencia else "")
+        for fila in (agenda.emergencia, agenda.normal)
+        for chegada in fila
+    )
+    print("Em espera:", espera or "ninguém")
     lua.diagnostico.marcar_alterado("P2")
     for linha in lua.diagnostico.exibir():
         print(linha)
