@@ -1,8 +1,14 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from estoque import Pedido, inteiro
+from typing import TYPE_CHECKING, Optional
+
+from estoque import Consumo, Pedido, inteiro
 from lista import Lista
+from pagamento import Pagamento
+
+if TYPE_CHECKING:
+    from atendimento import Chegada
 
 
 @dataclass(frozen=True)
@@ -12,16 +18,16 @@ class Procedimento:
 
 
 class Prontuario:
-    def __init__(self, numero, chegada, veterinario):
+    def __init__(self, numero: int, chegada: "Chegada", veterinario: str):
         self.numero = numero
         self.chegada = chegada
         self.veterinario = veterinario
         self.abertura = datetime.now()
-        self.alta = None
-        self.pagamento = None
-        self.consumo = Lista()
-        self.medicamentos = Lista()
-        self.procedimentos = Lista()
+        self.alta: Optional[datetime] = None
+        self.pagamento: Optional[Pagamento] = None
+        self.consumo: Lista[Consumo] = Lista()
+        self.medicamentos: Lista[Pedido] = Lista()
+        self.procedimentos: Lista[Procedimento] = Lista()
 
     def verificar_aberto(self):
         if self.pagamento is not None:

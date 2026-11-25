@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import date
+from typing import Iterable, Tuple
 from fila import Fila
 from lista import Lista
 
@@ -31,7 +32,7 @@ class Produto:
     codigo: str
     nome: str
     minimo: int
-    lotes: Fila = field(default_factory=Fila)
+    lotes: Fila[Lote] = field(default_factory=Fila)
 
 
 @dataclass(frozen=True)
@@ -53,8 +54,8 @@ class Consumo:
 
 class Estoque:
     def __init__(self):
-        self.produtos = Lista()
-        self.perdas = Lista()
+        self.produtos: Lista[Produto] = Lista()
+        self.perdas: Lista[Perda] = Lista()
 
     def cadastrar(self, codigo, nome, minimo):
         inteiro(minimo, 0)
@@ -65,7 +66,7 @@ class Estoque:
     def produto(self, codigo):
         return self.produtos.buscar(lambda p: p.codigo == codigo)
 
-    def receber(self, codigo, lote):
+    def receber(self, codigo: str, lote: Lote):
         produto = self.produto(codigo)
         inteiro(lote.quantidade, 1)
         inteiro(lote.custo, 0)
@@ -75,7 +76,7 @@ class Estoque:
         if any(l.numero == lote.numero for l in produto.lotes):
             raise ValueError("Lote já presente.")
         # Um lançamento atrasado também precisa respeitar a data da compra.
-        ordenada = Fila()
+        ordenada: Fila[Lote] = Fila()
         while not produto.lotes.vazia() and produto.lotes.frente().compra <= lote.compra:
             ordenada.entrar(produto.lotes.sair())
         ordenada.entrar(lote)
@@ -86,7 +87,7 @@ class Estoque:
     def descartar_vencidos(self):
         hoje = date.today()
         for produto in self.produtos:
-            validos = Fila()
+            validos: Fila[Lote] = Fila()
             while not produto.lotes.vazia():
                 lote = produto.lotes.sair()
                 if lote.validade < hoje:
@@ -112,10 +113,10 @@ class Estoque:
             if total < produto.minimo:
                 yield f"{produto.nome}: {total} em estoque, mínimo {produto.minimo}."
 
-    def baixar(self, pedidos):
+    def baixar(self, pedidos: Iterable[Pedido]) -> Lista[Consumo]:
         self.descartar_vencidos()
-        plano = Lista()
-        codigos = Lista()
+        plano: Lista[Tuple[Produto, Lote, int]] = Lista()
+        codigos: Lista[str] = Lista()
         for pedido in pedidos:
             inteiro(pedido.quantidade, 1)
             if any(codigo == pedido.codigo for codigo in codigos):
@@ -132,7 +133,7 @@ class Estoque:
                     break
             if faltam:
                 raise ValueError(f"Saldo insuficiente de {produto.nome}.")
-        consumo = Lista()
+        consumo: Lista[Consumo] = Lista()
         for produto, lote, usar in plano:  # Só altera saldos após validar todos os pedidos.
             lote.quantidade -= usar
             consumo.adicionar(Consumo(produto.codigo, lote.numero, usar, lote.preco))

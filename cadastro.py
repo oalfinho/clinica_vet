@@ -15,12 +15,12 @@ class Tutor:
     nome: str
     cpf: str
     telefone: str
-    animais: Lista = field(default_factory=Lista)  # Cada tutor recebe sua própria lista.
+    animais: Lista[Animal] = field(default_factory=Lista)  # Cada tutor recebe sua própria lista.
 
 
 class Cadastro:
     def __init__(self):
-        self.tutores = Lista()
+        self.tutores: Lista[Tutor] = Lista()
 
     def cadastrar_tutor(self, nome, cpf, telefone):
         if any(tutor.cpf == cpf for tutor in self.tutores):

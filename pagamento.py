@@ -1,7 +1,12 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from estoque import inteiro
+from typing import TYPE_CHECKING
+
+from estoque import Estoque, inteiro
+
+if TYPE_CHECKING:
+    from prontuario import Prontuario
 
 
 @dataclass(frozen=True)
@@ -16,7 +21,7 @@ class Pagamento:
     hora: datetime
 
 
-def fechar(ficha, estoque, pagador, forma, parcelas=1):
+def fechar(ficha: "Prontuario", estoque: Estoque, pagador: str, forma: str, parcelas: int = 1) -> Pagamento:
     ficha.verificar_aberto()
     if ficha.alta is None:
         raise ValueError("O fechamento exige alta.")

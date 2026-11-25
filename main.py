@@ -31,7 +31,7 @@ def demonstrar():
     lua = agenda.chegar(cpf, "Lua", "Ferimento na pata")
     agenda.chegar(cpf, "Sol", "Retorno")
     agenda.chegar(cpf, "Mel", "Acidente", emergencia=True)
-    ficha = lua.prontuario
+    ficha = lua.ficha_aberta()
     print(f"Ficha {ficha.numero}: {lua.animal.nome}, tutora {lua.tutor.nome}, {ficha.veterinario}")
     print("Em espera: Sol (normal), Mel (emergência)")
     lua.diagnostico.marcar_alterado("P2")
@@ -54,7 +54,7 @@ def demonstrar():
     for aviso in estoque.alertas():
         print(aviso)
     while sala.atual is not None:
-        ficha = sala.atual.prontuario
+        ficha = sala.atual.ficha_aberta()
         ficha.procedimento("Consulta", 4000)
         agenda.liberar(1)
         recibo = fechar(ficha, estoque, "Ana", "PIX")

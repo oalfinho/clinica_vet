@@ -1,19 +1,21 @@
+from typing import Iterator, Optional, Tuple
+
 from lista import Lista
 
 
 class EstruturaAnimal:
-    def __init__(self, nome, codigo=None):
+    def __init__(self, nome: str, codigo: Optional[str] = None):
         self.nome = nome
         self.codigo = codigo
         self.estado = "Saudável"
-        self.filhos = Lista()
+        self.filhos: Lista[EstruturaAnimal] = Lista()
 
-    def adicionar(self, nome, codigo=None):
+    def adicionar(self, nome: str, codigo: Optional[str] = None):
         filho = EstruturaAnimal(nome, codigo)
         self.filhos.adicionar(filho)
         return filho  # Permite acrescentar partes a este novo ramo.
 
-    def pre_ordem(self, nivel=0):
+    def pre_ordem(self, nivel: int = 0) -> Iterator[Tuple[int, "EstruturaAnimal"]]:
         yield nivel, self  # Visita o pai antes de descer aos filhos.
         for filho in self.filhos:
             yield from filho.pre_ordem(nivel + 1)

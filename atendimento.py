@@ -1,7 +1,8 @@
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Optional
 
-from cadastro import Animal, Tutor
+from cadastro import Animal, Cadastro, Tutor
 from diagnostico import EstruturaAnimal, nova_arvore
 from fila import Fila
 from lista import Lista
@@ -16,26 +17,31 @@ class Chegada:
     emergencia: bool
     hora: datetime = field(default_factory=datetime.now)
     diagnostico: EstruturaAnimal = field(default_factory=nova_arvore)
-    prontuario: Prontuario = field(default=None, init=False, repr=False, compare=False)
+    prontuario: Optional[Prontuario] = field(default=None, init=False, repr=False, compare=False)
+
+    def ficha_aberta(self) -> Prontuario:
+        if self.prontuario is None:
+            raise ValueError("O animal ainda aguarda a abertura do prontuário.")
+        return self.prontuario
 
 
 @dataclass
 class Consultorio:
     numero: int
-    atual: Chegada = None
+    atual: Optional[Chegada] = None
     veterinario: str = ""
 
 
 class Atendimento:
-    def __init__(self, cadastro, quantidade_consultorios):
+    def __init__(self, cadastro: Cadastro, quantidade_consultorios: int):
         if quantidade_consultorios < 1:
             raise ValueError("É preciso ter pelo menos um consultório.")
         self.cadastro = cadastro
-        self.normal = Fila()
-        self.emergencia = Fila()
-        self.historico = Lista()
+        self.normal: Fila[Chegada] = Fila()
+        self.emergencia: Fila[Chegada] = Fila()
+        self.historico: Lista[Prontuario] = Lista()
         self.proximo_numero = 1
-        self.consultorios = Lista()
+        self.consultorios: Lista[Consultorio] = Lista()
         for numero in range(1, quantidade_consultorios + 1):
             self.consultorios.adicionar(Consultorio(numero, veterinario=f"Veterinário do consultório {numero}"))
 
@@ -45,7 +51,7 @@ class Atendimento:
         for fila in (self.normal, self.emergencia):
             if any(chegada.animal is animal for chegada in fila):
                 raise ValueError("Animal já está na espera.")
-        if any(s.atual and s.atual.animal is animal for s in self.consultorios):
+        if any(s.atual is not None and s.atual.animal is animal for s in self.consultorios):
             raise ValueError("Animal já está em atendimento.")
         chegada = Chegada(tutor, animal, queixa, emergencia)
         fila = self.emergencia if emergencia else self.normal
@@ -56,7 +62,7 @@ class Atendimento:
                 break
         return chegada
 
-    def _chamar(self, sala):
+    def _chamar(self, sala: Consultorio) -> Optional[Chegada]:
         fila = self.normal if self.emergencia.vazia() else self.emergencia
         sala.atual = None if fila.vazia() else fila.sair()
         if sala.atual is not None:
@@ -66,9 +72,9 @@ class Atendimento:
             self.proximo_numero += 1
         return sala.atual
 
-    def liberar(self, numero):
+    def liberar(self, numero: int) -> Optional[Chegada]:
         sala = self.consultorios.buscar(lambda s: s.numero == numero)
         if sala.atual is None:
             raise ValueError("Consultório já está livre.")
-        sala.atual.prontuario.alta = datetime.now()
+        sala.atual.ficha_aberta().alta = datetime.now()
         return self._chamar(sala)
