@@ -42,7 +42,10 @@ def demonstrar():
     ficha.procedimento("Exame", 5000)
     ficha.cancelar_procedimento("Exame")
     proxima = agenda.liberar(1)
-    print("Alta de Lua. Próxima chamada:", proxima.animal.nome)
+    if proxima is None:
+        print("Alta de Lua. Nenhum animal na espera.")
+    else:
+        print("Alta de Lua. Próxima chamada:", proxima.animal.nome)
     recibo = fechar(ficha, estoque, "Ana", "cartão", 2)
     for item in ficha.consumo:
         print(f"Lote {item.lote}: {item.quantidade} × {reais(item.preco)}")
