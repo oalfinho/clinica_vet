@@ -2,6 +2,10 @@
 
 **Estrutura de Dados · Fatec Rio Claro · Prof. Orlando**
 
+[Assistir à demonstração da clínica (MP4, 3min34s)](./clinica_legendada.mp4)
+
+Legendas elaboradas e inseridas com auxílio de IA.
+
 ## 1. Concepção do projeto
 
 A clínica tem um número limitado de consultórios. Enquanto um animal está em consulta, outros aguardam. O sistema precisa decidir quem entra a seguir, registrar o que foi feito e cobrar os materiais pelo preço dos lotes utilizados.
